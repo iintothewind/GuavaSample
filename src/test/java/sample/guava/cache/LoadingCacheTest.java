@@ -23,7 +23,7 @@ public class LoadingCacheTest {
     public void getUnchecked() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
@@ -44,7 +44,7 @@ public class LoadingCacheTest {
     public void get() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 if (Pattern.compile("[a-zA-Z]+").matcher(key).matches()) {
                     return key.toUpperCase();
                 } else {
@@ -68,7 +68,7 @@ public class LoadingCacheTest {
     public void weakKeyValues() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
@@ -81,7 +81,7 @@ public class LoadingCacheTest {
     public void softKeyValues() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
@@ -90,10 +90,10 @@ public class LoadingCacheTest {
     }
 
     @Test
-    public void evicationbyLRU() {
+    public void evictByLRU() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
@@ -105,21 +105,16 @@ public class LoadingCacheTest {
     }
 
     @Test
-    public void evicationByWeigher() {
+    public void evictByWeigher() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
         //Weight is only measured once, when an entry is added to the cache
         //Weight is only used to determine whether the cache is over capacity; not for selecting what to evict
-        Weigher<String, String> weighByLength = new Weigher<String, String>() {
-            @Override
-            public int weigh(String key, String value) {
-                return value.length();
-            }
-        };
+        Weigher<String, String> weighByLength = (key, value) -> value.length();
 
         LoadingCache<String, String> cache = CacheBuilder.newBuilder().weakKeys().weakValues().maximumWeight(200).weigher(weighByLength).build(loader);
         assertThat(cache.getUnchecked("simple test")).isEqualTo("SIMPLE TEST");
@@ -129,7 +124,7 @@ public class LoadingCacheTest {
     public void timeToIdle() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
@@ -141,7 +136,7 @@ public class LoadingCacheTest {
     public void timeToLive() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
@@ -153,18 +148,13 @@ public class LoadingCacheTest {
     public void cacheStats() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
         //Weight is only measured once, when an entry is added to the cache
         //Weight is only used to determine whether the cache is over capacity; not for selecting what to evict
-        Weigher<String, String> weighByLength = new Weigher<String, String>() {
-            @Override
-            public int weigh(String key, String value) {
-                return value.length();
-            }
-        };
+        Weigher<String, String> weighByLength = (key, value) -> value.length();
 
         LoadingCache<String, String> cache = CacheBuilder.newBuilder().weakKeys().weakValues().maximumWeight(200).weigher(weighByLength).recordStats().build(loader);
         cache.getUnchecked("simple test");
@@ -207,7 +197,7 @@ public class LoadingCacheTest {
     public void configuration() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
@@ -218,16 +208,13 @@ public class LoadingCacheTest {
     public void removalNotification() {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
-        RemovalListener<String, String> listener = new RemovalListener<String, String>() {
-            @Override
-            public void onRemoval(RemovalNotification<String, String> notification) {
-                if (notification.wasEvicted()) {
-                    log.info("removed {} -> {} , removalCause: {}", notification.getKey(), notification.getValue(), notification.getCause().name());
-                }
+        RemovalListener<String, String> listener = notification -> {
+            if (notification.wasEvicted()) {
+                log.info("removed {} -> {} , removalCause: {}", notification.getKey(), notification.getValue(), notification.getCause().name());
             }
         };
         LoadingCache<String, String> cache = CacheBuilder.newBuilder().maximumSize(2).removalListener(listener).build(loader);
@@ -244,16 +231,13 @@ public class LoadingCacheTest {
     public void refresh() throws InterruptedException {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
-        RemovalListener<String, String> listener = new RemovalListener<String, String>() {
-            @Override
-            public void onRemoval(RemovalNotification<String, String> notification) {
-                if (notification.wasEvicted()) {
-                    log.info("removed {} -> {} , removalCause: {}", notification.getKey(), notification.getValue(), notification.getCause().name());
-                }
+        RemovalListener<String, String> listener = notification -> {
+            if (notification.wasEvicted()) {
+                log.info("removed {} -> {} , removalCause: {}", notification.getKey(), notification.getValue(), notification.getCause().name());
             }
         };
         LoadingCache<String, String> cache = CacheBuilder.newBuilder().maximumSize(2).expireAfterWrite(3, TimeUnit.SECONDS).removalListener(listener).build(loader);
@@ -270,17 +254,14 @@ public class LoadingCacheTest {
     public void autoRefresh() throws InterruptedException {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
 
-        RemovalListener<String, String> listener = new RemovalListener<String, String>() {
-            @Override
-            public void onRemoval(RemovalNotification<String, String> notification) {
-                if (notification.wasEvicted()) {
-                    log.info("removed {} -> {} , removalCause: {}", notification.getKey(), notification.getValue(), notification.getCause().name());
-                }
+        RemovalListener<String, String> listener = notification -> {
+            if (notification.wasEvicted()) {
+                log.info("removed {} -> {} , removalCause: {}", notification.getKey(), notification.getValue(), notification.getCause().name());
             }
         };
         LoadingCache<String, String> cache = CacheBuilder.newBuilder().maximumSize(2).expireAfterWrite(3, TimeUnit.SECONDS).refreshAfterWrite(2, TimeUnit.SECONDS).removalListener(listener).build(loader);
@@ -300,30 +281,22 @@ public class LoadingCacheTest {
     public void asyncRefresh() throws InterruptedException {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
 
             //Avoid blocking any user threads by providing an asynchronous CacheLoader.reloadimplementation
             @Override
-            public ListenableFuture<String> reload(String key, String oldValue) throws Exception {
-                ListenableFutureTask<String> task = ListenableFutureTask.create(new Callable<String>() {
-                    @Override
-                    public String call() throws Exception {
-                        return load(key);
-                    }
-                });
+            public ListenableFuture<String> reload(String key, String oldValue) {
+                ListenableFutureTask<String> task = ListenableFutureTask.create(() -> load(key));
                 Executors.newCachedThreadPool().execute(task);
                 return task;
             }
         };
 
-        RemovalListener<String, String> listener = new RemovalListener<String, String>() {
-            @Override
-            public void onRemoval(RemovalNotification<String, String> notification) {
-                if (notification.wasEvicted()) {
-                    log.info("removed {} -> {} , removalCause: {}", notification.getKey(), notification.getValue(), notification.getCause().name());
-                }
+        RemovalListener<String, String> listener = notification -> {
+            if (notification.wasEvicted()) {
+                log.info("removed {} -> {} , removalCause: {}", notification.getKey(), notification.getValue(), notification.getCause().name());
             }
         };
         LoadingCache<String, String> cache = CacheBuilder.newBuilder().maximumSize(2).expireAfterWrite(3, TimeUnit.SECONDS).refreshAfterWrite(2, TimeUnit.SECONDS).removalListener(listener).build(loader);
@@ -343,27 +316,19 @@ public class LoadingCacheTest {
     public void getWhenCacheMiss() throws ExecutionException {
         CacheLoader<String, String> loader = new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
+            public String load(String key) {
                 return key.toUpperCase();
             }
         };
 
-        RemovalListener<String, String> listener = new RemovalListener<String, String>() {
-            @Override
-            public void onRemoval(RemovalNotification<String, String> notification) {
-                if (notification.wasEvicted()) {
-                    log.info("removed {} -> {} , removalCause: {}", notification.getKey(), notification.getValue(), notification.getCause().name());
-                }
+        RemovalListener<String, String> listener = notification -> {
+            if (notification.wasEvicted()) {
+                log.info("removed {} -> {} , removalCause: {}", notification.getKey(), notification.getValue(), notification.getCause().name());
             }
         };
         LoadingCache<String, String> cache = CacheBuilder.newBuilder().maximumSize(2).expireAfterWrite(3, TimeUnit.SECONDS).refreshAfterWrite(2, TimeUnit.SECONDS).removalListener(listener).build(loader);
         final String key = "Apple";
-        final String value = cache.get(key, new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return key.toLowerCase();
-            }
-        });
+        final String value = cache.get(key, key::toLowerCase);
         assertThat(value).isEqualTo("apple");
     }
 

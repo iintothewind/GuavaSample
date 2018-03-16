@@ -103,7 +103,6 @@ public class RecommendTest {
         Preconditions.checkNotNull(map);
         Set<String> users = map.keySet();
         Set<String> friends = null;
-        Set<String> tempFriends = null;
         SetMultimap<String, String> recommendMap = HashMultimap.create();
         for (String user : users) {
             friends = map.get(user);
@@ -121,7 +120,6 @@ public class RecommendTest {
         Preconditions.checkNotNull(map);
         Set<String> users = map.keySet();
         Set<String> friends = null;
-        Set<String> tempFriends = null;
         SetMultimap<String, String> recommendMap = HashMultimap.create();
         for (String user : users) {
             friends = map.get(user);
