@@ -140,5 +140,6 @@ final class Account {
 }
 
 final class InsufficientFundsException extends Exception {
+	private static final long serialVersionUID = -4382846109103473470L;
 
 }

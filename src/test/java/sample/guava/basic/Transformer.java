@@ -3,14 +3,14 @@ package sample.guava.basic;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 
-public abstract class Transformer<A, B extends Comparable> {
+public abstract class Transformer<A, B extends Comparable<B>> {
     private Function<A, B> forward;
 
     private Transformer(Function<A, B> function) {
         this.forward = function;
     }
 
-    public static <A, B extends Comparable> Transformer<A, B> with(Function<A, B> function) {
+    public static <A, B extends Comparable<B>> Transformer<A, B> with(Function<A, B> function) {
         return new Transformer<A, B>(function) {
         };
     }
